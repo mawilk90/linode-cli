@@ -23,9 +23,15 @@ RESERVED_IP_HEADERS = [
     "type",
     "public",
     "rdns",
+    "region",
     "linode_id",
+    "interface_id",
     "reserved",
     "tags",
+    # "gateway",
+    # "prefix",
+    # "subnet_mask",
+    # "vpc_nat_1_1",
 ]
 
 
@@ -47,17 +53,16 @@ def has_shared_ip(linode_id: int, ip: str) -> bool:
     return False
 
 
-def verify_reserved_ip(reserved_ip):
+def verify_reserved_ip(result):
     assert isinstance(
-        ipaddress.ip_address(reserved_ip[0]), ipaddress.IPv4Address
+        ipaddress.ip_address(result["address"]), ipaddress.IPv4Address
     )
-    assert reserved_ip[1] == "ipv4"
-    assert reserved_ip[2] == "True"
-    assert reserved_ip[4] == DEFAULT_REGION
-    assert not reserved_ip[5]
-    assert reserved_ip[7] == "True"
-    # TODO: To be clarified if it should be returned in CLI
-    # assert reserved_ip["assigned_entity"] is None
+    assert result["type"] == "ipv4"
+    assert result["public"] == True
+    assert result["region"] == DEFAULT_REGION
+    assert not result["linode_id"]
+    assert result["reserved"] == True
+    # assert not result["assigned_entity.label"]
 
 
 def test_display_ips_for_available_linodes(test_linode_id):
@@ -145,42 +150,47 @@ def test_allocate_additional_private_ipv4_address(test_linode_id):
 
 
 @pytest.mark.smoke
-@pytest.mark.parametrize("create_reserved_ip", ["test", None], indirect=True)
-def test_create_reserved_ip(create_reserved_ip):
-    headers, reserved_ip = create_reserved_ip
-    assert_headers_in_lines(RESERVED_IP_HEADERS, [headers])
-    verify_reserved_ip(reserved_ip)
+@pytest.mark.parametrize(
+    "create_reserved_ip, expected",
+    [
+        ("test", ["test"]),
+        (None, [])
+    ],
+    indirect=["create_reserved_ip"])
+def test_create_reserved_ip(create_reserved_ip, expected):
+    res_ip_data = create_reserved_ip
+    headers = list(res_ip_data.keys())
 
-    tags = reserved_ip[-1]
-    assert tags == "test" if tags else tags == ""
+    assert_headers_in_lines(RESERVED_IP_HEADERS, [headers])
+    verify_reserved_ip(res_ip_data)
+    assert res_ip_data["tags"] == expected
 
 
 @pytest.mark.parametrize("create_reserved_ip", ["test"], indirect=True)
 def test_update_reserved_ip_tags(create_reserved_ip):
-    _, reserved_ip = create_reserved_ip
-    assert reserved_ip[-1] == "test"
+    res_ip_data = create_reserved_ip
+    assert res_ip_data["tags"] == ["test"]
 
-    result = exec_test_command(
-        BASE_CMDS["networking"]
-        + [
-            "reserved-ip-update",
-            "--tags",
-            "updated",
-            "--tags",
-            "updated2",
-            reserved_ip[0],
-            "--text",
-            "--no-headers",
-            "--delimiter",
-            ",",
-        ]
-    ).split(",")
+    result = json.loads(
+        exec_test_command(
+            BASE_CMDS["networking"] + [
+                "reserved-ip-update",
+                "--tags",
+                "updated",
+                "--tags",
+                "updated2",
+                res_ip_data["address"],
+                "--json",
+            ]
+        )
+    )[0]
+
     verify_reserved_ip(result)
-    assert result[-1] == "updated updated2"
+    assert result["tags"] == ["updated", "updated2"]
 
 
 def test_create_reserved_ip_assigned(create_reserved_ip, test_linode_id):
-    _, reserved_ip = create_reserved_ip
+    res_ip_data = create_reserved_ip
     linode_id = test_linode_id
 
     exec_test_command(
@@ -190,32 +200,33 @@ def test_create_reserved_ip_assigned(create_reserved_ip, test_linode_id):
             "--assignments.linode_id",
             linode_id,
             "--assignments.address",
-            reserved_ip[0],
+            res_ip_data["address"],
             "--region",
             DEFAULT_REGION,
         ]
     )
 
-    command = BASE_CMDS["linodes"] + [
-        "ip-view",
-        linode_id,
-        reserved_ip[0],
-        "--text",
-        "--delimiter",
-        ",",
-    ]
-    headers, values = get_command_heads_and_vals(command)
+    result = json.loads(
+        exec_test_command(
+            BASE_CMDS["linodes"] + [
+                "ip-view",
+                linode_id,
+                res_ip_data["address"],
+                "--json",
+            ]
+        )
+    )[0]
+    headers = list(result.keys())
 
     assert_headers_in_lines(RESERVED_IP_HEADERS[:-1], [headers])
-    # TODO: To be clarified if tags should be returned in CLI (currently it is)
-    # assert "tags" not in headers
-    assert values[0] == reserved_ip[0]
-    assert str(values[5]) == linode_id
-    assert values[7] == "True"
+    assert result["address"] == res_ip_data["address"]
+    assert result["linode_id"] == int(linode_id)
+    assert result["reserved"] == True
+    assert "tags" not in headers
 
 
 def test_get_reserved_ip_types():
-    headers_exp = ["id", "label", "price.hourly", "price.monthly"]
+    headers_exp = ["id", "label", "price.hourly", "price.monthly"] # , "region_prices"]
     command = BASE_CMDS["networking"] + [
         "reserved-ip-types-list",
         "--text",
@@ -231,18 +242,20 @@ def test_get_reserved_ip_types():
 
 
 def test_get_reserved_ip_view(create_reserved_ip):
-    _, reserved_ip = create_reserved_ip
-    command = BASE_CMDS["networking"] + [
-        "reserved-ip-view",
-        reserved_ip[0],
-        "--text",
-        "--delimiter",
-        ",",
-    ]
-    headers, values = get_command_heads_and_vals(command)
+    res_ip_data = create_reserved_ip
+    result = json.loads(
+        exec_test_command(
+            BASE_CMDS["networking"] + [
+                "reserved-ip-view",
+                res_ip_data["address"],
+                "--json",
+            ]
+        )
+    )[0]
+    headers = list(result.keys())
 
     assert_headers_in_lines(RESERVED_IP_HEADERS, [headers])
-    verify_reserved_ip(values)
+    verify_reserved_ip(result)
 
 
 def test_get_reserved_ips_list(create_reserved_ip):

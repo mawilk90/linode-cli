@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from tests.integration.helpers import (
@@ -19,18 +21,17 @@ def create_reserved_ip(request):
         "reserved-ip-add",
         "--region",
         DEFAULT_REGION,
-        "--text",
-        "--delimiter",
-        ",",
+        "--json",
     ]
 
     if tags:
         command += ["--tags", tags]
 
-    headers, values = get_command_heads_and_vals(command)
-    yield headers, values
+    result = json.loads(exec_test_command(command))[0]
 
-    delete_target_id("networking", values[0], "reserved-ip-delete")
+    yield result
+
+    delete_target_id("networking", result["address"], "reserved-ip-delete")
 
 
 @pytest.fixture(scope="package")
