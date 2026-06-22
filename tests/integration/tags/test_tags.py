@@ -1,5 +1,4 @@
 import json
-import time
 
 import pytest
 
@@ -13,7 +12,7 @@ from tests.integration.helpers import (
     get_random_text,
 )
 from tests.integration.networking.fixtures import (  # noqa: F401
-    create_reserved_ip
+    create_reserved_ip,
 )
 
 
@@ -29,6 +28,7 @@ def create_tag_instance():
     yield unique_tag
 
     delete_target_id("tags", unique_tag)
+
 
 @pytest.fixture
 def create_tag_instance_for_reserved_ip(create_reserved_ip):
@@ -81,7 +81,8 @@ def test_create_delete_tag_for_reserved_ip(create_tag_instance_for_reserved_ip):
 
     result = json.loads(
         exec_test_command(
-            BASE_CMDS["tags"] + [
+            BASE_CMDS["tags"]
+            + [
                 "get-tagged-objects",
                 tag_label,
                 "--json",
@@ -98,7 +99,8 @@ def test_create_delete_tag_for_reserved_ip(create_tag_instance_for_reserved_ip):
     assert result["type"] == "reserved_ipv4_address"
 
     exec_test_command(
-        BASE_CMDS["tags"] + [
+        BASE_CMDS["tags"]
+        + [
             "delete",
             tag_label,
         ]

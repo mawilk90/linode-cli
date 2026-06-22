@@ -152,11 +152,9 @@ def test_allocate_additional_private_ipv4_address(test_linode_id):
 @pytest.mark.smoke
 @pytest.mark.parametrize(
     "create_reserved_ip, expected",
-    [
-        ("test", ["test"]),
-        (None, [])
-    ],
-    indirect=["create_reserved_ip"])
+    [("test", ["test"]), (None, [])],
+    indirect=["create_reserved_ip"],
+)
 def test_create_reserved_ip(create_reserved_ip, expected):
     res_ip_data = create_reserved_ip
     headers = list(res_ip_data.keys())
@@ -173,7 +171,8 @@ def test_update_reserved_ip_tags(create_reserved_ip):
 
     result = json.loads(
         exec_test_command(
-            BASE_CMDS["networking"] + [
+            BASE_CMDS["networking"]
+            + [
                 "reserved-ip-update",
                 "--tags",
                 "updated",
@@ -208,7 +207,8 @@ def test_create_reserved_ip_assigned(create_reserved_ip, test_linode_id):
 
     result = json.loads(
         exec_test_command(
-            BASE_CMDS["linodes"] + [
+            BASE_CMDS["linodes"]
+            + [
                 "ip-view",
                 linode_id,
                 res_ip_data["address"],
@@ -226,7 +226,12 @@ def test_create_reserved_ip_assigned(create_reserved_ip, test_linode_id):
 
 
 def test_get_reserved_ip_types():
-    headers_exp = ["id", "label", "price.hourly", "price.monthly"] # , "region_prices"]
+    headers_exp = [
+        "id",
+        "label",
+        "price.hourly",
+        "price.monthly",
+    ]  # , "region_prices"]
     command = BASE_CMDS["networking"] + [
         "reserved-ip-types-list",
         "--text",
@@ -245,7 +250,8 @@ def test_get_reserved_ip_view(create_reserved_ip):
     res_ip_data = create_reserved_ip
     result = json.loads(
         exec_test_command(
-            BASE_CMDS["networking"] + [
+            BASE_CMDS["networking"]
+            + [
                 "reserved-ip-view",
                 res_ip_data["address"],
                 "--json",
