@@ -27,11 +27,10 @@ RESERVED_IP_HEADERS = [
     "linode_id",
     "interface_id",
     "reserved",
+    "gateway",
+    "prefix",
+    "subnet_mask",
     "tags",
-    # "gateway",
-    # "prefix",
-    # "subnet_mask",
-    # "vpc_nat_1_1",
 ]
 
 
@@ -62,7 +61,6 @@ def verify_reserved_ip(result):
     assert result["region"] == DEFAULT_REGION
     assert not result["linode_id"]
     assert result["reserved"] == True
-    # assert not result["assigned_entity.label"]
 
 
 def test_display_ips_for_available_linodes(test_linode_id):
@@ -223,27 +221,32 @@ def test_create_reserved_ip_assigned(create_reserved_ip, test_linode_id):
     assert result["linode_id"] == int(linode_id)
     assert result["reserved"] == True
     assert "tags" not in headers
+    assert "assigned_entity" in headers
 
 
 def test_get_reserved_ip_types():
     headers_exp = [
         "id",
         "label",
-        "price.hourly",
-        "price.monthly",
-    ]  # , "region_prices"]
-    command = BASE_CMDS["networking"] + [
-        "reserved-ip-types-list",
-        "--text",
-        "--delimiter",
-        ",",
+        "price",
+        "region_prices",
     ]
-    headers, values = get_command_heads_and_vals(command)
+    result = json.loads(
+        exec_test_command(
+            BASE_CMDS["networking"]
+            + [
+                "reserved-ip-types-list",
+                "--json",
+            ]
+        )
+    )[0]
+    headers = list(result.keys())
+    prices = [result["price"]["hourly"], result["price"]["monthly"]]
 
     assert_headers_in_lines(headers_exp, [headers])
-    assert values[0] == "reserved-ipv4"
-    assert values[1] == "Reserved IPv4"
-    assert any(price != 0 for price in values[2:4])
+    assert result["id"] == "reserved-ipv4"
+    assert result["label"] == "Reserved IPv4"
+    assert any(price != 0 for price in prices)
 
 
 def test_get_reserved_ip_view(create_reserved_ip):
