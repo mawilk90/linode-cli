@@ -10,7 +10,7 @@ from tests.integration.helpers import (
 DEFAULT_RANDOM_PASS = exec_test_command(["openssl", "rand", "-base64", "32"])
 DEFAULT_REGION = (
     "pl-labkrk-2"
-    if "devcloud" in os.getenv("LINODE_CLI_API_HOST")
+    if "devcloud" in os.getenv("LINODE_CLI_API_HOST", "")
     else "us-ord"
 )
 
