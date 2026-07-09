@@ -323,7 +323,7 @@ def test_update_ephemeral_to_reserved(get_linode_id):
 
 
 def test_share_ipv4_address(
-        get_linode_ids_shared_ipv4, monkeypatch: MonkeyPatch
+    get_linode_ids_shared_ipv4, monkeypatch: MonkeyPatch
 ):
     target_linode, parent_linode = get_linode_ids_shared_ipv4
     monkeypatch.setenv("LINODE_CLI_API_VERSION", "v4beta")
