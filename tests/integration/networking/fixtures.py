@@ -35,7 +35,7 @@ def create_reserved_ip(request):
 
 
 @pytest.fixture(scope="package")
-def test_linode_id(linode_cloud_firewall):
+def get_linode_id(linode_cloud_firewall):
     linode_id = create_linode_and_wait(firewall_id=linode_cloud_firewall)
 
     yield linode_id
@@ -44,7 +44,7 @@ def test_linode_id(linode_cloud_firewall):
 
 
 @pytest.fixture(scope="package")
-def test_linode_id_shared_ipv4(linode_cloud_firewall):
+def get_linode_ids_shared_ipv4(linode_cloud_firewall):
     target_region = "us-mia"
 
     linode_ids = (

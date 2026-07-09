@@ -14,8 +14,8 @@ from tests.integration.linodes.helpers import DEFAULT_REGION
 from tests.integration.networking.fixtures import (  # noqa: F401
     create_reserved_ip,
     get_command_heads_and_vals,
-    test_linode_id,
-    test_linode_id_shared_ipv4,
+    get_linode_id,
+    get_linode_ids_shared_ipv4,
 )
 
 RESERVED_IP_HEADERS = [
@@ -63,7 +63,7 @@ def verify_reserved_ip(result):
     assert result["reserved"] == True
 
 
-def test_display_ips_for_available_linodes(test_linode_id):
+def test_display_ips_for_available_linodes(get_linode_id):
     result = exec_test_command(
         BASE_CMDS["networking"]
         + ["ips-list", "--text", "--no-headers", "--delimiter", ","]
@@ -82,8 +82,8 @@ def test_display_ips_for_available_linodes(test_linode_id):
 
 
 @pytest.mark.smoke
-def test_view_an_ip_address(test_linode_id):
-    linode_id = test_linode_id
+def test_view_an_ip_address(get_linode_id):
+    linode_id = get_linode_id
     linode_ipv4 = exec_test_command(
         [
             "linode-cli",
@@ -121,8 +121,8 @@ def test_view_an_ip_address(test_linode_id):
     ), f"`interface_id` is not None or int: {data['interface_id']}"
 
 
-def test_allocate_additional_private_ipv4_address(test_linode_id):
-    linode_id = test_linode_id
+def test_allocate_additional_private_ipv4_address(get_linode_id):
+    linode_id = get_linode_id
 
     result = exec_test_command(
         BASE_CMDS["networking"]
@@ -186,9 +186,9 @@ def test_update_reserved_ip_tags(create_reserved_ip):
     assert result["tags"] == ["updated", "updated2"]
 
 
-def test_create_reserved_ip_assigned(create_reserved_ip, test_linode_id):
+def test_create_reserved_ip_assigned(create_reserved_ip, get_linode_id):
     res_ip_data = create_reserved_ip
-    linode_id = test_linode_id
+    linode_id = get_linode_id
 
     exec_test_command(
         BASE_CMDS["networking"]
@@ -282,8 +282,8 @@ def test_get_reserved_ips_list(create_reserved_ip):
     assert all(item == "True" for item in result)
 
 
-def test_update_ephemeral_to_reserved(test_linode_id):
-    linode_id = test_linode_id
+def test_update_ephemeral_to_reserved(get_linode_id):
+    linode_id = get_linode_id
 
     ephemeral_ip = exec_test_command(
         BASE_CMDS["linodes"]
@@ -323,9 +323,9 @@ def test_update_ephemeral_to_reserved(test_linode_id):
 
 
 def test_share_ipv4_address(
-    test_linode_id_shared_ipv4, monkeypatch: MonkeyPatch
+        get_linode_ids_shared_ipv4, monkeypatch: MonkeyPatch
 ):
-    target_linode, parent_linode = test_linode_id_shared_ipv4
+    target_linode, parent_linode = get_linode_ids_shared_ipv4
     monkeypatch.setenv("LINODE_CLI_API_VERSION", "v4beta")
 
     # Allocate an IPv4 address on the parent Linode
