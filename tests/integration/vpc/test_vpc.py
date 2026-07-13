@@ -411,7 +411,7 @@ def test_vpc_with_ipv4(create_vpc_with_ipv4, expected):
     result = exec_test_command(
         BASE_CMDS["vpcs"] + ["list", "--text", "--format=id", "--no-headers"]
     )
-    assert vpc_id in result
+    assert vpc_id in result.splitlines()
 
     result = json.loads(
         exec_test_command(BASE_CMDS["vpcs"] + ["view", vpc_id, "--json"])
@@ -428,7 +428,7 @@ def test_vpc_with_forbidden_ipv4_fail():
             "--no-headers",
             "--format=forbidden_ipv4_ranges",
         ]
-    ).split(" ")[0]
+    ).split()[0]
 
     region = get_random_region_with_caps(
         required_capabilities=["VPCs", "Custom VPC IPv4 Ranges"]

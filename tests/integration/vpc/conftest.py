@@ -72,7 +72,7 @@ def test_subnet(test_vpc_wo_subnet):
 @pytest.fixture
 def create_vpc_with_ipv4(request):
     params = getattr(request, "param", None)
-    params = params.split(" ") if params else []
+    params = params.split() if params else []
     region = get_random_region_with_caps(
         required_capabilities=["VPCs", "Custom VPC IPv4 Ranges"]
     )
