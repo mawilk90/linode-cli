@@ -419,6 +419,33 @@ def test_vpc_with_ipv4(create_vpc_with_ipv4, expected):
     assert len(result["ipv4"]) == expected
 
 
+@pytest.mark.parametrize(
+    "create_vpc_with_ipv4, updated",
+    [
+        ("--ipv4.range 10.0.0.0/8", "192.168.0.0/17"),
+    ],
+    indirect=["create_vpc_with_ipv4"],
+)
+def test_vpc_update_with_ipv4(create_vpc_with_ipv4, updated):
+    vpc_id = create_vpc_with_ipv4
+
+    exec_test_command(
+        BASE_CMDS["vpcs"]
+        + [
+            "update",
+            vpc_id,
+            "--ipv4.range",
+            updated,
+        ]
+    )
+
+    result = json.loads(
+        exec_test_command(BASE_CMDS["vpcs"] + ["view", vpc_id, "--json"])
+    )[0]
+    assert len(result["ipv4"]) == 1
+    assert result["ipv4"][0]["range"] == updated
+
+
 def test_vpc_with_forbidden_ipv4_fail():
     forbidden_ipv4 = exec_test_command(
         BASE_CMD
