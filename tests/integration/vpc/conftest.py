@@ -11,7 +11,7 @@ from tests.integration.helpers import (
 
 
 @pytest.fixture
-def test_vpc_w_subnet():
+def get_test_vpc_w_subnet():
     vpc_json = create_vpc_w_subnet()
     vpc_id = str(vpc_json["id"])
 
@@ -21,7 +21,7 @@ def test_vpc_w_subnet():
 
 
 @pytest.fixture
-def test_vpc_wo_subnet():
+def get_test_vpc_wo_subnet():
     region = get_random_region_with_caps(required_capabilities=["VPCs"])
 
     label = get_random_text(5) + "-label"
@@ -48,8 +48,8 @@ def test_vpc_wo_subnet():
 
 
 @pytest.fixture
-def test_subnet(test_vpc_wo_subnet):
-    vpc_id = test_vpc_wo_subnet
+def get_test_subnet(get_test_vpc_wo_subnet):
+    vpc_id = get_test_vpc_wo_subnet
     subnet_label = get_random_text(5) + "-label"
     res = exec_test_command(
         BASE_CMDS["vpcs"]

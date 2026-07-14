@@ -19,8 +19,8 @@ BASE_CMD = ["linode-cli", "vpcs"]
 disable_vpc_dual_stack_tests = True
 
 
-def test_list_vpcs(test_vpc_wo_subnet):
-    vpc_id = test_vpc_wo_subnet
+def test_list_vpcs(get_test_vpc_wo_subnet):
+    vpc_id = get_test_vpc_wo_subnet
     res = exec_test_command(BASE_CMDS["vpcs"] + ["ls", "--text"])
     headers = ["id", "label", "description", "region"]
 
@@ -29,8 +29,8 @@ def test_list_vpcs(test_vpc_wo_subnet):
     assert vpc_id in res
 
 
-def test_view_vpc(test_vpc_wo_subnet):
-    vpc_id = test_vpc_wo_subnet
+def test_view_vpc(get_test_vpc_wo_subnet):
+    vpc_id = get_test_vpc_wo_subnet
 
     res = exec_test_command(
         BASE_CMDS["vpcs"] + ["view", vpc_id, "--text", "--no-headers"]
@@ -40,8 +40,8 @@ def test_view_vpc(test_vpc_wo_subnet):
 
 
 @pytest.mark.smoke
-def test_update_vpc(test_vpc_wo_subnet):
-    vpc_id = test_vpc_wo_subnet
+def test_update_vpc(get_test_vpc_wo_subnet):
+    vpc_id = get_test_vpc_wo_subnet
 
     new_label = get_random_text(5) + "label"
 
@@ -69,8 +69,8 @@ def test_update_vpc(test_vpc_wo_subnet):
     assert "new description" in description
 
 
-def test_list_subnets(test_vpc_w_subnet):
-    vpc_id = test_vpc_w_subnet
+def test_list_subnets(get_test_vpc_w_subnet):
+    vpc_id = get_test_vpc_w_subnet
 
     res = exec_test_command(
         BASE_CMD + ["subnets-list", vpc_id, "--text", "--delimiter=,"]
@@ -89,15 +89,15 @@ def test_list_subnets(test_vpc_w_subnet):
         ), "String format does not match"
 
 
-def test_view_subnet(test_vpc_wo_subnet, test_subnet):
+def test_view_subnet(get_test_vpc_wo_subnet, get_test_subnet):
     # note calling test_subnet fixture will add subnet to test_vpc_wo_subnet
-    res, label = test_subnet
+    res, label = get_test_subnet
 
     res = res.split(",")
 
     vpc_subnet_id = res[0]
 
-    vpc_id = test_vpc_wo_subnet
+    vpc_id = get_test_vpc_wo_subnet
 
     output = exec_test_command(
         BASE_CMDS["vpcs"] + ["subnet-view", vpc_id, vpc_subnet_id, "--text"]
@@ -110,8 +110,8 @@ def test_view_subnet(test_vpc_wo_subnet, test_subnet):
 
 
 @pytest.mark.smoke
-def test_update_subnet(test_vpc_w_subnet):
-    vpc_id = test_vpc_w_subnet
+def test_update_subnet(get_test_vpc_w_subnet):
+    vpc_id = get_test_vpc_w_subnet
 
     new_label = get_random_text(5) + "label"
 
@@ -150,8 +150,8 @@ def test_fails_to_create_vpc_invalid_label():
     assert "Must only use ASCII letters, numbers, and dashes" in res
 
 
-def test_fails_to_create_vpc_duplicate_label(test_vpc_wo_subnet):
-    vpc_id = test_vpc_wo_subnet
+def test_fails_to_create_vpc_duplicate_label(get_test_vpc_wo_subnet):
+    vpc_id = get_test_vpc_wo_subnet
     label = exec_test_command(
         BASE_CMD + ["view", vpc_id, "--text", "--no-headers", "--format=label"]
     )
@@ -165,8 +165,8 @@ def test_fails_to_create_vpc_duplicate_label(test_vpc_wo_subnet):
     assert "Label must be unique among your VPCs" in res
 
 
-def test_fails_to_update_vpc_invalid_label(test_vpc_wo_subnet):
-    vpc_id = test_vpc_wo_subnet
+def test_fails_to_update_vpc_invalid_label(get_test_vpc_wo_subnet):
+    vpc_id = get_test_vpc_wo_subnet
     invalid_label = "invalid_label"
 
     res = exec_failing_test_command(
@@ -178,8 +178,8 @@ def test_fails_to_update_vpc_invalid_label(test_vpc_wo_subnet):
     assert "Must only use ASCII letters, numbers, and dashes" in res
 
 
-def test_fails_to_create_vpc_subnet_w_invalid_label(test_vpc_wo_subnet):
-    vpc_id = test_vpc_wo_subnet
+def test_fails_to_create_vpc_subnet_w_invalid_label(get_test_vpc_wo_subnet):
+    vpc_id = get_test_vpc_wo_subnet
     invalid_label = "invalid_label"
 
     res = exec_failing_test_command(
@@ -199,8 +199,8 @@ def test_fails_to_create_vpc_subnet_w_invalid_label(test_vpc_wo_subnet):
     assert "Must only use ASCII letters, numbers, and dashes" in res
 
 
-def test_fails_to_update_vpc_subnet_w_invalid_label(test_vpc_w_subnet):
-    vpc_id = test_vpc_w_subnet
+def test_fails_to_update_vpc_subnet_w_invalid_label(get_test_vpc_w_subnet):
+    vpc_id = get_test_vpc_w_subnet
 
     invalid_label = "invalid_label"
 
@@ -294,8 +294,8 @@ def test_create_vpc_with_custom_ipv6_prefix_length(prefix_len):
 @pytest.mark.skipif(
     disable_vpc_dual_stack_tests, reason="Dual-stack tests disabled"
 )
-def test_create_subnet_with_ipv6_auto(test_vpc_wo_subnet):
-    vpc_id = test_vpc_wo_subnet
+def test_create_subnet_with_ipv6_auto(get_test_vpc_wo_subnet):
+    vpc_id = get_test_vpc_wo_subnet
     subnet_label = get_random_text(5) + "-ipv6subnet"
 
     res = exec_test_command(
