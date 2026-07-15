@@ -12,7 +12,6 @@ from tests.integration.helpers import (
     get_random_text,
 )
 
-BASE_CMD = ["linode-cli", "vpcs"]
 HEADERS_VPC = ["id", "label", "description", "region", "vpc_type"]
 HEADERS_SUBNET = ["id", "label", "ipv4", "vpc_type"]
 
@@ -23,28 +22,26 @@ disable_vpc_dual_stack_tests = True
 
 def get_vpcs_list(params: str = None):
     params = params.split() if params else []
-    command = BASE_CMD + ["ls", "--text"] + params
+    command = BASE_CMDS["vpcs"] + ["ls", "--text"] + params
     return exec_test_command(command)
 
 
 def get_vpc_view(vpc_id: int = None):
     return json.loads(
-        exec_test_command(
-            BASE_CMD + ["view", vpc_id, "--json"]
-        )
+        exec_test_command(BASE_CMDS["vpcs"] + ["view", vpc_id, "--json"])
     )[0]
 
 
 def get_subnets_list(vpc_id: int, params: str = None):
     params = params.split() if params else []
-    command = BASE_CMD + ["subnets-list", vpc_id] + params
+    command = BASE_CMDS["vpcs"] + ["subnets-list", vpc_id] + params
     return exec_test_command(command)
 
 
 def get_subnet_view(vpc_id: int, subnet_id: int):
     return json.loads(
         exec_test_command(
-            BASE_CMD + ["subnet-view", vpc_id, subnet_id, "--json"]
+            BASE_CMDS["vpcs"] + ["subnet-view", vpc_id, subnet_id, "--json"]
         )
     )[0]
 
@@ -88,7 +85,7 @@ def test_update_vpc(get_test_vpc_wo_subnet):
     )
 
     description = exec_test_command(
-        BASE_CMD
+        BASE_CMDS["vpcs"]
         + ["view", vpc_id, "--text", "--no-headers", "--format=description"]
     )
 
@@ -145,7 +142,7 @@ def test_update_subnet(get_test_vpc_w_subnet):
     )
 
     updated_label = exec_test_command(
-        BASE_CMD
+        BASE_CMDS["vpcs"]
         + [
             "subnet-update",
             vpc_id,
@@ -181,7 +178,8 @@ def test_fails_to_create_vpc_invalid_label():
     region = get_random_region_with_caps(required_capabilities=["VPCs"])
 
     res = exec_failing_test_command(
-        BASE_CMD + ["create", "--label", invalid_label, "--region", region],
+        BASE_CMDS["vpcs"]
+        + ["create", "--label", invalid_label, "--region", region],
         ExitCodes.REQUEST_FAILED,
     )
 
@@ -192,12 +190,13 @@ def test_fails_to_create_vpc_invalid_label():
 def test_fails_to_create_vpc_duplicate_label(get_test_vpc_wo_subnet):
     vpc_id = get_test_vpc_wo_subnet
     label = exec_test_command(
-        BASE_CMD + ["view", vpc_id, "--text", "--no-headers", "--format=label"]
+        BASE_CMDS["vpcs"]
+        + ["view", vpc_id, "--text", "--no-headers", "--format=label"]
     )
     region = get_random_region_with_caps(required_capabilities=["VPCs"])
 
     res = exec_failing_test_command(
-        BASE_CMD + ["create", "--label", label, "--region", region],
+        BASE_CMDS["vpcs"] + ["create", "--label", label, "--region", region],
         ExitCodes.REQUEST_FAILED,
     )
 
@@ -209,7 +208,7 @@ def test_fails_to_update_vpc_invalid_label(get_test_vpc_wo_subnet):
     invalid_label = "invalid_label"
 
     res = exec_failing_test_command(
-        BASE_CMD + ["update", vpc_id, "--label", invalid_label],
+        BASE_CMDS["vpcs"] + ["update", vpc_id, "--label", invalid_label],
         ExitCodes.REQUEST_FAILED,
     )
 
@@ -222,7 +221,7 @@ def test_fails_to_create_vpc_subnet_w_invalid_label(get_test_vpc_wo_subnet):
     invalid_label = "invalid_label"
 
     res = exec_failing_test_command(
-        BASE_CMD
+        BASE_CMDS["vpcs"]
         + [
             "subnet-create",
             "--label",
@@ -244,12 +243,12 @@ def test_fails_to_update_vpc_subnet_w_invalid_label(get_test_vpc_w_subnet):
     invalid_label = "invalid_label"
 
     subnet_id = exec_test_command(
-        BASE_CMD
+        BASE_CMDS["vpcs"]
         + ["subnets-list", vpc_id, "--text", "--format=id", "--no-headers"]
     )
 
     res = exec_failing_test_command(
-        BASE_CMD
+        BASE_CMDS["vpcs"]
         + [
             "subnet-update",
             vpc_id,
@@ -275,7 +274,7 @@ def test_create_vpc_with_ipv6_auto():
     label = get_random_text(5) + "-vpc"
 
     res = exec_test_command(
-        BASE_CMD
+        BASE_CMDS["vpcs"]
         + [
             "create",
             "--label",
@@ -308,7 +307,7 @@ def test_create_vpc_with_custom_ipv6_prefix_length(prefix_len):
     label = get_random_text(5) + f"-vpc{prefix_len}"
 
     res = exec_test_command(
-        BASE_CMD
+        BASE_CMDS["vpcs"]
         + [
             "create",
             "--label",
@@ -338,7 +337,7 @@ def test_create_subnet_with_ipv6_auto(get_test_vpc_wo_subnet):
     subnet_label = get_random_text(5) + "-ipv6subnet"
 
     res = exec_test_command(
-        BASE_CMD
+        BASE_CMDS["vpcs"]
         + [
             "subnet-create",
             "--label",
@@ -377,7 +376,7 @@ def test_fails_to_create_vpc_with_invalid_ipv6_range():
     label = get_random_text(5) + "-invalidvpc"
 
     res = exec_failing_test_command(
-        BASE_CMD
+        BASE_CMDS["vpcs"]
         + [
             "create",
             "--label",
@@ -396,7 +395,7 @@ def test_fails_to_create_vpc_with_invalid_ipv6_range():
 def test_list_vpc_ip_address():
 
     res = exec_test_command(
-        BASE_CMD + ["ips-all-list", "--text", "--delimiter=,"]
+        BASE_CMDS["vpcs"] + ["ips-all-list", "--text", "--delimiter=,"]
     )
 
     lines = res.splitlines()
@@ -413,7 +412,7 @@ def test_list_vpc_ip_address():
 def test_list_vpc_ipv6s_address():
 
     res = exec_test_command(
-        BASE_CMD + ["ipv6s-all-list", "--text", "--delimiter=,"]
+        BASE_CMDS["vpcs"] + ["ipv6s-all-list", "--text", "--delimiter=,"]
     )
 
     lines = res.splitlines()
