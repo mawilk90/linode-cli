@@ -13,7 +13,8 @@ from tests.integration.helpers import (
 )
 
 BASE_CMD = ["linode-cli", "vpcs"]
-VPC_HEADERS = ["id", "label", "description", "region", "vpc_type"]
+HEADERS_VPC = ["id", "label", "description", "region", "vpc_type"]
+HEADERS_SUBNET = ["id", "label", "ipv4", "vpc_type"]
 
 
 # TODO: Remove this variable and @pytest.mark.skipif once VPC Dual Stack is ready to ship
@@ -22,14 +23,29 @@ disable_vpc_dual_stack_tests = True
 
 def get_vpcs_list(params: str = None):
     params = params.split() if params else []
-    command = BASE_CMDS["vpcs"] + ["ls", "--text"] + params
-
+    command = BASE_CMD + ["ls", "--text"] + params
     return exec_test_command(command)
 
 
 def get_vpc_view(vpc_id: int = None):
     return json.loads(
-        exec_test_command(BASE_CMDS["vpcs"] + ["view", vpc_id, "--json"])
+        exec_test_command(
+            BASE_CMD + ["view", vpc_id, "--json"]
+        )
+    )[0]
+
+
+def get_subnets_list(vpc_id: int, params: str = None):
+    params = params.split() if params else []
+    command = BASE_CMD + ["subnets-list", vpc_id] + params
+    return exec_test_command(command)
+
+
+def get_subnet_view(vpc_id: int, subnet_id: int):
+    return json.loads(
+        exec_test_command(
+            BASE_CMD + ["subnet-view", vpc_id, subnet_id, "--json"]
+        )
     )[0]
 
 
@@ -37,7 +53,7 @@ def test_list_vpcs(get_test_vpc_wo_subnet):
     vpc_id = get_test_vpc_wo_subnet
     output = get_vpcs_list("--page-size 100")
 
-    assert all(header in output for header in VPC_HEADERS)
+    assert all(header in output for header in HEADERS_VPC)
     assert vpc_id in output
 
 
@@ -45,6 +61,7 @@ def test_view_vpc(get_test_vpc_wo_subnet):
     vpc_id = get_test_vpc_wo_subnet
     output = get_vpc_view(vpc_id)
 
+    assert all([header in output.keys() for header in HEADERS_VPC])
     assert str(output["id"]) == vpc_id
     assert output["vpc_type"] == "regular"
 
@@ -83,7 +100,7 @@ def test_vpc_with_rdma_type(get_test_vpc_w_rdma_type):
     vpc_id = get_test_vpc_w_rdma_type
 
     output = get_vpcs_list("--page-size 100")
-    assert all(header in output for header in VPC_HEADERS)
+    assert all(header in output for header in HEADERS_VPC)
     assert vpc_id in output
 
     output = get_vpcs_list("--page-size 100 --format=vpc_type --no-headers")
@@ -97,41 +114,23 @@ def test_vpc_with_rdma_type(get_test_vpc_w_rdma_type):
 def test_list_subnets(get_test_vpc_w_subnet):
     vpc_id = get_test_vpc_w_subnet
 
-    res = exec_test_command(
-        BASE_CMD + ["subnets-list", vpc_id, "--text", "--delimiter=,"]
-    )
+    output = get_subnets_list(vpc_id, "--text --delimiter=,").splitlines()
+    assert all(header in output[0] for header in HEADERS_SUBNET)
 
-    lines = res.splitlines()
-
-    headers = ["id", "label", "ipv4"]
-
-    for header in headers:
-        assert header in lines[0]
-
-    for line in lines[1:]:
+    for line in output[1:]:
         assert re.match(
-            r"^(\d+),(\w+),(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d+)$", line
+            r"^(\d+),(\w+),(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d+),(\w+)$",
+            line,
         ), "String format does not match"
 
 
-def test_view_subnet(get_test_vpc_wo_subnet, get_test_subnet):
-    # note calling test_subnet fixture will add subnet to test_vpc_wo_subnet
-    res, label = get_test_subnet
+def test_view_subnet(get_test_subnet):
+    vpc_id, subnet_id = get_test_subnet
+    output = get_subnet_view(vpc_id, subnet_id)
 
-    res = res.split(",")
-
-    vpc_subnet_id = res[0]
-
-    vpc_id = get_test_vpc_wo_subnet
-
-    output = exec_test_command(
-        BASE_CMDS["vpcs"] + ["subnet-view", vpc_id, vpc_subnet_id, "--text"]
-    )
-
-    headers = ["id", "label", "ipv4"]
-    for header in headers:
-        assert header in output
-    assert vpc_subnet_id in output
+    assert all(header in output.keys() for header in HEADERS_SUBNET)
+    assert str(output["id"]) == subnet_id
+    assert output["vpc_type"] == "regular"
 
 
 @pytest.mark.smoke
@@ -160,6 +159,21 @@ def test_update_subnet(get_test_vpc_w_subnet):
     )
 
     assert new_label == updated_label
+
+
+def test_subnet_with_rdma_type_vpc(get_test_subnet_w_rdma_type):
+    vpc_id, subnet_id = get_test_subnet_w_rdma_type
+
+    output = get_subnets_list(vpc_id)
+    assert all(header in output for header in HEADERS_SUBNET)
+    assert subnet_id in output
+
+    output = get_subnets_list(vpc_id, "--format=vpc_type --no-headers")
+    assert any(["rdma" in output.split()])
+
+    output = get_subnet_view(vpc_id, subnet_id)
+    assert str(output["id"]) == subnet_id
+    assert output["vpc_type"] == "rdma"
 
 
 def test_fails_to_create_vpc_invalid_label():
