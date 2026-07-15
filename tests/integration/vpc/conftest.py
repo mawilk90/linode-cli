@@ -48,6 +48,34 @@ def get_test_vpc_wo_subnet():
 
 
 @pytest.fixture
+def get_test_vpc_w_rdma_type():
+    # GPUDirect RDMA capability not available for now
+    # region = get_random_region_with_caps(required_capabilities=["VPCs", "GPUDirect RDMA"])
+    region = get_random_region_with_caps(required_capabilities=["VPCs"])
+    label = get_random_text(5) + "-test-rdma-vpc"
+
+    vpc_id = exec_test_command(
+        BASE_CMDS["vpcs"]
+        + [
+            "create",
+            "--label",
+            label,
+            "--region",
+            region,
+            "--vpc_type",
+            "rdma",
+            "--no-headers",
+            "--text",
+            "--format=id",
+        ]
+    )
+
+    yield vpc_id
+
+    delete_target_id(target="vpcs", id=vpc_id)
+
+
+@pytest.fixture
 def get_test_subnet(get_test_vpc_wo_subnet):
     vpc_id = get_test_vpc_wo_subnet
     subnet_label = get_random_text(5) + "-label"

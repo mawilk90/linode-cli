@@ -13,30 +13,40 @@ from tests.integration.helpers import (
 )
 
 BASE_CMD = ["linode-cli", "vpcs"]
+VPC_HEADERS = ["id", "label", "description", "region", "vpc_type"]
 
 
 # TODO: Remove this variable and @pytest.mark.skipif once VPC Dual Stack is ready to ship
 disable_vpc_dual_stack_tests = True
 
 
+def get_vpcs_list(params: str = None):
+    params = params.split() if params else []
+    command = BASE_CMDS["vpcs"] + ["ls", "--text"] + params
+
+    return exec_test_command(command)
+
+
+def get_vpc_view(vpc_id: int = None):
+    return json.loads(
+        exec_test_command(BASE_CMDS["vpcs"] + ["view", vpc_id, "--json"])
+    )[0]
+
+
 def test_list_vpcs(get_test_vpc_wo_subnet):
     vpc_id = get_test_vpc_wo_subnet
-    res = exec_test_command(BASE_CMDS["vpcs"] + ["ls", "--text"])
-    headers = ["id", "label", "description", "region"]
+    output = get_vpcs_list("--page-size 100")
 
-    for header in headers:
-        assert header in res
-    assert vpc_id in res
+    assert all(header in output for header in VPC_HEADERS)
+    assert vpc_id in output
 
 
 def test_view_vpc(get_test_vpc_wo_subnet):
     vpc_id = get_test_vpc_wo_subnet
+    output = get_vpc_view(vpc_id)
 
-    res = exec_test_command(
-        BASE_CMDS["vpcs"] + ["view", vpc_id, "--text", "--no-headers"]
-    )
-
-    assert vpc_id in res
+    assert str(output["id"]) == vpc_id
+    assert output["vpc_type"] == "regular"
 
 
 @pytest.mark.smoke
@@ -67,6 +77,21 @@ def test_update_vpc(get_test_vpc_wo_subnet):
 
     assert new_label == updated_label
     assert "new description" in description
+
+
+def test_vpc_with_rdma_type(get_test_vpc_w_rdma_type):
+    vpc_id = get_test_vpc_w_rdma_type
+
+    output = get_vpcs_list("--page-size 100")
+    assert all(header in output for header in VPC_HEADERS)
+    assert vpc_id in output
+
+    output = get_vpcs_list("--page-size 100 --format=vpc_type --no-headers")
+    assert any(["rdma" in output.split()])
+
+    output = get_vpc_view(vpc_id)
+    assert str(output["id"]) == vpc_id
+    assert output["vpc_type"] == "rdma"
 
 
 def test_list_subnets(get_test_vpc_w_subnet):
