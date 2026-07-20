@@ -58,6 +58,12 @@ jobs:
       - name: run linter
         run: make lint
 
+      - name: check readiness for merge
+        if: contains(github.event.pull_request.labels.*.name, 'do-not-merge')
+        run: |
+          echo "This PR is labeled as 'do-not-merge'. Please remove the label before merging."
+          exit 1
+
   unit-tests-on-ubuntu:
     runs-on: ubuntu-latest
     strategy:
