@@ -59,6 +59,7 @@ jobs:
       - name: run linter
         run: make lint
 
+      # Enforce removal of the 'do-not-merge' label before merging
       - name: check readiness for merge
         if: contains(github.event.pull_request.labels.*.name, 'do-not-merge')
         run: |
