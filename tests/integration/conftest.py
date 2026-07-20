@@ -26,8 +26,8 @@ from tests.integration.helpers import (
     wait_for_condition,
 )
 
-
 # Sample change
+
 
 @pytest.fixture(autouse=True, scope="session")
 def linode_cloud_firewall():
