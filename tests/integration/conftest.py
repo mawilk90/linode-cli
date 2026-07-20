@@ -26,7 +26,7 @@ from tests.integration.helpers import (
     wait_for_condition,
 )
 
-# Sample change
+# Another change
 
 
 @pytest.fixture(autouse=True, scope="session")
