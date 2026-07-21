@@ -3,23 +3,106 @@ on:
   workflow_dispatch: null
   push:
   pull_request:
-    types: [opened, synchronize, reopened, labeled, unlabeled]
 jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag linode/cli:$(date +%s) --build-arg="github_token=$GITHUB_TOKEN"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   lint:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
     steps:
-      # Enforce removal of the 'do-not-merge' label before merging
-      - name: check readiness for merge
+      # Enforce TPT-1234: prefix on PR titles, with the following exemptions:
+      # - PRs labeled 'dependencies' (e.g. Dependabot PRs)
+      # - PRs labeled 'hotfix' (urgent fixes that may not have a ticket)
+      # - PRs labeled 'community-contribution' (external contributors without TPT tickets)
+      # - PRs labeled 'ignore-for-release' (release PRs that don't need a ticket prefix)
+      - name: Validate PR Title
         if: github.event_name == 'pull_request'
+        uses: amannn/action-semantic-pull-request@v6
+        with:
+          types: |
+            TPT-\d+
+          requireScope: false
+          # Override the default header pattern to allow hyphens and digits in the type
+          # (e.g. "TPT-4298: Description"). The default pattern only matches word
+          # characters (\w) which excludes hyphens.
+          headerPattern: '^([\w-]+):\s?(.*)$'
+          headerPatternCorrespondence: type, subject
+          ignoreLabels: |
+            dependencies
+            hotfix
+            community-contribution
+            ignore-for-release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: checkout repo
+        uses: actions/checkout@v7
+
+      - name: setup python 3
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
+      - name: install dependencies
+        run: make install
+
+      - name: run linter
+        run: make lint
+
+  unit-tests-on-ubuntu:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.9","3.10","3.11", "3.12", "3.13" ]
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Python dependencies
+        run: pip install -U certifi
+
+      - name: Install Package
+        run: make install
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run the unit test suite
+        run: make test
+
+  unit-tests-on-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Install Python dependencies
+        run: pip install -U certifi
+
+      - name: Install Package
+        shell: pwsh
         run: |
-          LABELS='${{ toJson(github.event.pull_request.labels.*.name) }}'
-          
-          if echo "$LABELS" | grep -q "do-not-merge"; then
-            echo "This PR is labeled as 'do-not-merge'. Please make sure it is ready."
-            exit 1
-          else
-            exit 0
-          fi
+          make install
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run the unit test suite
+        run: make test
