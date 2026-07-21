@@ -3,7 +3,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
 jobs:
-  lint:
+  check-merge-readiness:
     runs-on: ubuntu-latest
     permissions:
       contents: read

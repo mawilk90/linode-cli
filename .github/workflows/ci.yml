@@ -58,6 +58,18 @@ jobs:
       - name: run linter
         run: make lint
 
+      - name: check merge readiness
+        if: github.event_name == 'pull_request'
+        run: |
+          LABELS='${{ toJson(github.event.pull_request.labels.*.name) }}'
+          
+          if echo "$LABELS" | grep -q "do-not-merge"; then
+            echo "This PR is labeled as 'do-not-merge'. Please make sure it is ready."
+            exit 1
+          else
+            exit 0
+          fi
+
   unit-tests-on-ubuntu:
     runs-on: ubuntu-latest
     strategy:
