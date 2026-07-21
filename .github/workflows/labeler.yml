@@ -36,7 +36,7 @@ jobs:
           LABELS='${{ toJson(github.event.pull_request.labels.*.name) }}'
           
           if echo "$LABELS" | grep -q "do-not-merge"; then
-            echo "This PR is labeled as 'do-not-merge'. Please make sure it is ready."
+            echo "This PR is labeled as 'do-not-merge' so please make sure it is ready."
             exit 1
           else
             exit 0
