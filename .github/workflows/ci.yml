@@ -15,7 +15,7 @@ jobs:
       - name: check readiness for merge
         if: github.event_name == 'pull_request'
         run: |
-          LABELS='${{ toJson(github.event.push.labels.*.name) }}'
+          LABELS='${{ toJson(github.event.pull_request.labels.*.name) }}'
           
           if echo "$LABELS" | grep -q "do-not-merge"; then
             echo "This PR is labeled as 'do-not-merge'. Please make sure it is ready."
