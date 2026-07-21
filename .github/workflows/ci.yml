@@ -15,11 +15,11 @@ jobs:
       - name: check readiness for merge
         run: |
           LABELS='${{ toJson(github.event.pull_request.labels.*.name) }}'
-          echo "PR Labels: $LABELS"
+#          echo "PR Labels: $LABELS"
           
           if echo "$LABELS" | grep -q "do-not-merge"; then
-            echo "This PR is labeled as 'do-not-merge'. Please remove the label before merging."
+            echo "This PR is labeled as 'do-not-merge'. Please make sure it is ready to be merged."
             exit 1
-          else
-            echo "No 'do-not-merge' label found. Proceeding with merge."
+#          else
+#            echo "No 'do-not-merge' label found. Proceeding with merge."
           fi
