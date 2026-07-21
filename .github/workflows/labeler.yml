@@ -39,6 +39,5 @@ jobs:
             echo "This PR is labeled as 'do-not-merge'. Please make sure it is ready."
             exit 1
           else
-            echo " No 'do-not-merge' label found. This PR is ready for merge."
             exit 0
           fi
