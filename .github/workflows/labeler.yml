@@ -1,4 +1,4 @@
-name: labeler
+name: Labeler
 
 on:
   push:
@@ -17,11 +17,10 @@ jobs:
   labeler:
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v7
-      -
-        name: Run Labeler
+
+      - name: Run Labeler
         uses: crazy-max/ghaction-github-labeler@548a7c3603594ec17c819e1239f281a3b801ab4d
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -30,8 +29,8 @@ jobs:
           exclude: |
             help*
             *issue
-      -
-        name: check merge readiness
+
+      - name: Check Merge Readiness
         if: github.event_name == 'pull_request'
         run: |
           LABELS='${{ toJson(github.event.pull_request.labels.*.name) }}'
