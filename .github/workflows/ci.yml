@@ -14,7 +14,7 @@ jobs:
       # Enforce removal of the 'do-not-merge' label before merging
       - name: check readiness for merge
         run: |
-          LABELS='${{ github.event.pull_request.labels.*.name }}'
+          LABELS='${{ toJson(github.event.pull_request.labels.*.name) }}'
           echo "PR Labels: $LABELS"
           
           if echo "$LABELS" | grep -q "do-not-merge"; then
