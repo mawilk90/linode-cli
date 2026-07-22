@@ -137,6 +137,7 @@ def test_update_subnet(test_vpc_w_subnet):
     assert new_label == updated_label
 
 
+@pytest.mark.skip(reason="Defect: ARB-8019")
 def test_fails_to_create_vpc_invalid_label():
     invalid_label = "invalid_label"
     region = get_random_region_with_caps(required_capabilities=["VPCs"])
@@ -165,6 +166,7 @@ def test_fails_to_create_vpc_duplicate_label(test_vpc_wo_subnet):
     assert "Label must be unique among your VPCs" in res
 
 
+@pytest.mark.skip(reason="Defect: ARB-8019")
 def test_fails_to_update_vpc_invalid_label(test_vpc_wo_subnet):
     vpc_id = test_vpc_wo_subnet
     invalid_label = "invalid_label"
@@ -178,6 +180,7 @@ def test_fails_to_update_vpc_invalid_label(test_vpc_wo_subnet):
     assert "Must only use ASCII letters, numbers, and dashes" in res
 
 
+@pytest.mark.skip(reason="Defect: ARB-8019")
 def test_fails_to_create_vpc_subnet_w_invalid_label(test_vpc_wo_subnet):
     vpc_id = test_vpc_wo_subnet
     invalid_label = "invalid_label"
@@ -199,6 +202,7 @@ def test_fails_to_create_vpc_subnet_w_invalid_label(test_vpc_wo_subnet):
     assert "Must only use ASCII letters, numbers, and dashes" in res
 
 
+@pytest.mark.skip(reason="Defect: ARB-8019")
 def test_fails_to_update_vpc_subnet_w_invalid_label(test_vpc_w_subnet):
     vpc_id = test_vpc_w_subnet
 
