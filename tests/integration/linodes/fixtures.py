@@ -487,8 +487,6 @@ def test_linode_instance(linode_cloud_firewall):
             "--delimiter",
             ",",
             "--no-headers",
-            "--format",
-            "id",
             "--no-defaults",
             "--format",
             "id",
@@ -700,3 +698,33 @@ def linode_with_authorization_key(linode_cloud_firewall):
 
     yield result
     delete_target_id(target="linodes", id=result[0])
+
+
+@pytest.fixture
+def linode_with_reserved_ip(linode_cloud_firewall, create_reserved_ip):
+    res_ip = create_reserved_ip["address"]
+
+    linode_id = exec_test_command(
+        BASE_CMDS["linodes"]
+        + [
+            "create",
+            "--type",
+            "g6-nanode-1",
+            "--region",
+            DEFAULT_REGION,
+            "--firewall_id",
+            linode_cloud_firewall,
+            "--ipv4",
+            res_ip,
+            "--text",
+            "--no-headers",
+            "--format",
+            "id",
+        ]
+    )
+
+    wait_until(linode_id=linode_id, timeout=180, status="offline")
+
+    yield res_ip, linode_id
+
+    delete_target_id(target="linodes", id=linode_id)
