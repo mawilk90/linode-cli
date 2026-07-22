@@ -12,8 +12,6 @@ from tests.integration.helpers import (
 )
 from tests.integration.linodes.helpers import DEFAULT_REGION
 from tests.integration.networking.fixtures import (  # noqa: F401
-    create_reserved_ip,
-    get_command_heads_and_vals,
     get_linode_id,
     get_linode_ids_shared_ipv4,
 )
