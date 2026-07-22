@@ -5,6 +5,7 @@ import pytest
 from linodecli.exit_codes import ExitCodes
 from tests.integration.helpers import (
     BASE_CMDS,
+    DEFAULT_REGION,
     exec_failing_test_command,
     exec_test_command,
 )
@@ -12,6 +13,7 @@ from tests.integration.nodebalancers.fixtures import (  # noqa: F401
     linode_to_add,
     nodebalancer_w_config_and_node,
     nodebalancer_with_default_conf,
+    nodebalancer_with_reserved_ipv4,
     nodebalancer_with_udp_config_and_node,
     simple_nodebalancer_with_config,
 )
@@ -66,6 +68,23 @@ def test_display_public_ipv4_for_nodebalancer(nodebalancer_w_config_and_node):
         ]
     )
     assert re.search(r"^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}", result)
+
+
+def test_display_nodebalancer_with_res_ipv4(nodebalancer_with_reserved_ipv4):
+    res_ip, nb_id = nodebalancer_with_reserved_ipv4
+    result = exec_test_command(
+        BASE_CMDS["nodebalancers"]
+        + [
+            "view",
+            nb_id,
+            "--format",
+            "ipv4",
+            "--text",
+            "--no-headers",
+        ]
+    )
+
+    assert res_ip in result
 
 
 def test_fail_to_view_nodebalancer_with_invalid_id():

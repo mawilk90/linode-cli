@@ -7,10 +7,10 @@ from _pytest.monkeypatch import MonkeyPatch
 
 from tests.integration.helpers import (
     BASE_CMDS,
+    DEFAULT_REGION,
     assert_headers_in_lines,
     exec_test_command,
 )
-from tests.integration.linodes.helpers import DEFAULT_REGION
 from tests.integration.networking.fixtures import (  # noqa: F401
     get_linode_id,
     get_linode_ids_shared_ipv4,

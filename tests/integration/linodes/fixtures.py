@@ -5,6 +5,7 @@ import pytest
 
 from tests.integration.helpers import (
     BASE_CMDS,
+    DEFAULT_REGION,
     delete_target_id,
     exec_test_command,
     get_random_region_with_caps,
@@ -16,7 +17,6 @@ from tests.integration.linodes.helpers import (
     DEFAULT_LABEL,
     DEFAULT_LINODE_TYPE,
     DEFAULT_RANDOM_PASS,
-    DEFAULT_REGION,
     DEFAULT_TEST_IMAGE,
     create_linode,
     create_linode_and_wait,
