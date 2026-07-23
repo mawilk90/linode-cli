@@ -11,9 +11,6 @@ from tests.integration.helpers import (
     exec_test_command,
     get_random_text,
 )
-from tests.integration.networking.fixtures import (  # noqa: F401
-    create_reserved_ip,
-)
 
 
 @pytest.fixture(scope="session")
