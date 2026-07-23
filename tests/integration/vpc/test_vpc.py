@@ -389,6 +389,7 @@ def test_list_vpc_ipv6s_address():
         assert header in lines[0]
 
 
+@pytest.mark.skip(reason="Skipped because Configurable VPC IPv4 not released by TechDoc yet")
 def test_get_vpc_default_ranges():
     headers = ["default_ipv4_ranges", "forbidden_ipv4_ranges"]
 
@@ -401,6 +402,7 @@ def test_get_vpc_default_ranges():
     assert isinstance(result[headers[1]], list)
 
 
+@pytest.mark.skip(reason="Skipped because Configurable VPC IPv4 not released by TechDoc yet")
 @pytest.mark.parametrize(
     "create_vpc_with_ipv4, expected",
     [
@@ -423,6 +425,7 @@ def test_vpc_with_ipv4(create_vpc_with_ipv4, expected):
     assert len(result["ipv4"]) == expected
 
 
+@pytest.mark.skip(reason="Skipped because Configurable VPC IPv4 not released by TechDoc yet")
 @pytest.mark.parametrize(
     "create_vpc_with_ipv4, updated",
     [
@@ -450,6 +453,7 @@ def test_vpc_update_with_ipv4(create_vpc_with_ipv4, updated):
     assert result["ipv4"][0]["range"] == updated
 
 
+@pytest.mark.skip(reason="Skipped because Configurable VPC IPv4 not released by TechDoc yet")
 def test_vpc_with_forbidden_ipv4_fail():
     forbidden_ipv4 = exec_test_command(
         BASE_CMD
