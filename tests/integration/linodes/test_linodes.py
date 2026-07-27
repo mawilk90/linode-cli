@@ -326,13 +326,7 @@ def test_display_linode_with_res_ipv4(linode_with_reserved_ip):
     res_ip, linode_id = linode_with_reserved_ip
     result = exec_test_command(
         BASE_CMDS["linodes"]
-        + [
-            "view",
-            linode_id,
-            "--text",
-            "--no-headers",
-            "--no-defaults"
-        ]
+        + ["view", linode_id, "--text", "--no-headers", "--no-defaults"]
     )
 
     assert linode_id in result

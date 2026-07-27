@@ -5,7 +5,6 @@ import pytest
 from linodecli.exit_codes import ExitCodes
 from tests.integration.helpers import (
     BASE_CMDS,
-    DEFAULT_REGION,
     exec_failing_test_command,
     exec_test_command,
 )
