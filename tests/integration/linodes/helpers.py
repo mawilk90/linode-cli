@@ -1,4 +1,5 @@
 import json
+import os
 import time
 
 from tests.integration.helpers import (
@@ -7,7 +8,11 @@ from tests.integration.helpers import (
 )
 
 DEFAULT_RANDOM_PASS = exec_test_command(["openssl", "rand", "-base64", "32"])
-DEFAULT_REGION = "us-ord"
+DEFAULT_REGION = (
+    "pl-labkrk-2"
+    if "devcloud" in os.getenv("LINODE_CLI_API_HOST", "")
+    else "us-ord"
+)
 
 DEFAULT_TEST_IMAGE = exec_test_command(
     [
@@ -304,3 +309,33 @@ def get_disk_id(test_linode_instance):
     ).splitlines()
     first_id = disk_id[0].split(",")[0]
     return first_id
+
+
+def wait_for_disk_status(
+    linode_id: "str", disk_id: "str", timeout, status: "str", period=10
+):
+    must_end = time.time() + timeout
+    while time.time() < must_end:
+        time.sleep(period)
+        try:
+            result = exec_test_command(
+                [
+                    "linode-cli",
+                    "linodes",
+                    "disk-view",
+                    linode_id,
+                    disk_id,
+                    "--format",
+                    "status",
+                    "--text",
+                    "--no-headers",
+                ]
+            )
+        except RuntimeError as response_error:
+            if "Not found" in str(response_error):
+                continue
+            else:
+                raise RuntimeError(response_error)
+        if status == result:
+            return True
+    return False
