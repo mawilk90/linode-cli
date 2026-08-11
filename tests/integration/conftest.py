@@ -229,8 +229,8 @@ def create_vpc_w_subnet():
                 vpc_label,
                 "--region",
                 region,
-                # "--ipv6.range",    TODO: Uncomment after VPC Dual Stack is ready to ship
-                # "auto",
+                "--ipv6.range",
+                "auto",
                 "--subnets.ipv4",
                 "10.0.0.0/24",
                 "--subnets.label",
