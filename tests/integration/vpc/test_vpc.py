@@ -16,10 +16,6 @@ HEADERS_VPC = ["id", "label", "description", "region", "vpc_type"]
 HEADERS_SUBNET = ["id", "label", "ipv4", "vpc_type"]
 
 
-# TODO: Remove this variable and @pytest.mark.skipif once VPC Dual Stack is ready to ship
-disable_vpc_dual_stack_tests = True
-
-
 def get_vpcs_list(params: str = None):
     params = params.split() if params else []
     command = BASE_CMDS["vpcs"] + ["ls", "--text"] + params
@@ -270,9 +266,6 @@ def test_fails_to_update_vpc_subnet_w_invalid_label(get_test_vpc_w_subnet):
     assert "Must only use ASCII letters, numbers, and dashes" in res
 
 
-@pytest.mark.skipif(
-    disable_vpc_dual_stack_tests, reason="Dual-stack tests disabled"
-)
 def test_create_vpc_with_ipv6_auto():
     region = get_random_region_with_caps(required_capabilities=["VPCs"])
     label = get_random_text(5) + "-vpc"
@@ -303,9 +296,6 @@ def test_create_vpc_with_ipv6_auto():
 
 
 @pytest.mark.parametrize("prefix_len", ["52"])
-@pytest.mark.skipif(
-    disable_vpc_dual_stack_tests, reason="Dual-stack tests disabled"
-)
 def test_create_vpc_with_custom_ipv6_prefix_length(prefix_len):
     region = get_random_region_with_caps(required_capabilities=["VPCs"])
     label = get_random_text(5) + f"-vpc{prefix_len}"
@@ -333,12 +323,9 @@ def test_create_vpc_with_custom_ipv6_prefix_length(prefix_len):
     assert ipv6_range.endswith(f"/{prefix_len}")
 
 
-@pytest.mark.skipif(
-    disable_vpc_dual_stack_tests, reason="Dual-stack tests disabled"
-)
 def test_create_subnet_with_ipv6_auto(get_test_vpc_wo_subnet):
     vpc_id = get_test_vpc_wo_subnet
-    subnet_label = get_random_text(5) + "-ipv6subnet"
+    subnet_label = get_random_text(5) + "-ipv6-subnet"
 
     res = exec_test_command(
         BASE_CMDS["vpcs"]
@@ -372,9 +359,6 @@ def test_create_subnet_with_ipv6_auto(get_test_vpc_wo_subnet):
     assert "/" in ipv6_range, f"Unexpected IPv6 CIDR format: {ipv6_range}"
 
 
-@pytest.mark.skipif(
-    disable_vpc_dual_stack_tests, reason="Dual-stack tests disabled"
-)
 def test_fails_to_create_vpc_with_invalid_ipv6_range():
     region = get_random_region_with_caps(required_capabilities=["VPCs"])
     label = get_random_text(5) + "-invalidvpc"
@@ -410,9 +394,6 @@ def test_list_vpc_ip_address():
         assert header in lines[0]
 
 
-@pytest.mark.skipif(
-    disable_vpc_dual_stack_tests, reason="Dual-stack tests disabled"
-)
 def test_list_vpc_ipv6s_address():
 
     res = exec_test_command(
@@ -431,7 +412,9 @@ def test_get_vpc_default_ranges():
     headers = ["default_ipv4_ranges", "forbidden_ipv4_ranges"]
 
     result = json.loads(
-        exec_test_command(BASE_CMD + ["default-ranges-all-list", "--json"])
+        exec_test_command(
+            BASE_CMDS["vpcs"] + ["default-ranges-all-list", "--json"]
+        )
     )[0]
 
     assert all(header in result.keys() for header in headers)
@@ -490,7 +473,7 @@ def test_vpc_update_with_ipv4(create_vpc_with_ipv4, updated):
 
 def test_vpc_with_forbidden_ipv4_fail():
     forbidden_ipv4 = exec_test_command(
-        BASE_CMD
+        BASE_CMDS["vpcs"]
         + [
             "default-ranges-all-list",
             "--text",

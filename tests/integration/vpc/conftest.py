@@ -33,8 +33,8 @@ def get_test_vpc_wo_subnet():
             label,
             "--region",
             region,
-            # "--ipv6.range",    TODO: Uncomment after VPC Dual Stack is ready to ship
-            # "auto",
+            "--ipv6.range",
+            "auto",
             "--no-headers",
             "--text",
             "--format=id",
