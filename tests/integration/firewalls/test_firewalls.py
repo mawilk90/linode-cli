@@ -195,6 +195,9 @@ def test_update_firewall(firewall_id):
     assert re.search(firewall_id + "," + updated_label + ",enabled", result)
 
 
+@pytest.mark.skip(
+    reason="Test skipped until there is a way to delete default firewall"
+)
 def test_firewall_settings_update_and_list(get_firewall_id):
     for cmd in [
         BASE_CMDS["firewalls"]

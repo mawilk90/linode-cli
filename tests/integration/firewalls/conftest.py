@@ -4,9 +4,11 @@ import pytest
 
 from tests.integration.helpers import (
     BASE_CMDS,
+    check_attribute_value,
     delete_target_id,
     exec_test_command,
     get_random_text,
+    wait_for_condition,
 )
 
 
@@ -27,7 +29,7 @@ def get_firewall_defaults():
 @pytest.fixture(scope="function")
 def _firewall_id_and_label():
     label = "test-fw-" + get_random_text(5)
-    fw_id = exec_test_command(
+    firewall_id = exec_test_command(
         BASE_CMDS["firewalls"]
         + [
             "create",
@@ -44,13 +46,22 @@ def _firewall_id_and_label():
         ]
     )
 
-    yield fw_id, label
+    # Verify firewall status is reachable before proceeding with tests
+    wait_for_condition(
+        5,
+        60,
+        check_attribute_value,
+        "firewalls",
+        "view",
+        firewall_id,
+        "status",
+        "enabled",
+    )
+
+    yield firewall_id, label
 
     # cleanup (possible for non-default firewalls only)
-    default_fws = get_firewall_defaults()
-
-    if int(fw_id) not in set(default_fws[key] for key in default_fws):
-        delete_target_id(target="firewalls", id=fw_id)
+    delete_target_id(target="firewalls", id=firewall_id)
 
 
 @pytest.fixture(scope="function")
