@@ -431,7 +431,9 @@ def test_get_vpc_default_ranges():
     headers = ["default_ipv4_ranges", "forbidden_ipv4_ranges"]
 
     result = json.loads(
-        exec_test_command(BASE_CMD + ["default-ranges-all-list", "--json"])
+        exec_test_command(
+            BASE_CMDS["vpcs"] + ["default-ranges-all-list", "--json"]
+        )
     )[0]
 
     assert all(header in result.keys() for header in headers)
@@ -490,7 +492,7 @@ def test_vpc_update_with_ipv4(create_vpc_with_ipv4, updated):
 
 def test_vpc_with_forbidden_ipv4_fail():
     forbidden_ipv4 = exec_test_command(
-        BASE_CMD
+        BASE_CMDS["vpcs"]
         + [
             "default-ranges-all-list",
             "--text",
