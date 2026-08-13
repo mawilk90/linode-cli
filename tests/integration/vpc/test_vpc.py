@@ -1,4 +1,5 @@
 import json
+import os
 import re
 
 import pytest
@@ -10,6 +11,7 @@ from tests.integration.helpers import (
     exec_test_command,
     get_random_region_with_caps,
     get_random_text,
+    wait_for_condition,
 )
 
 HEADERS_VPC = ["id", "label", "description", "region", "vpc_type"]
@@ -427,6 +429,10 @@ def test_list_vpc_ipv6s_address():
         assert header in lines[0]
 
 
+@pytest.mark.skipif(
+    os.environ.get("LINODE_CLI_API_VERSION", None) != "v4beta",
+    reason="At the moment default-ranges-all-list command is available on beta env only",
+)
 def test_get_vpc_default_ranges():
     headers = ["default_ipv4_ranges", "forbidden_ipv4_ranges"]
 
@@ -452,10 +458,15 @@ def test_get_vpc_default_ranges():
 def test_vpc_with_ipv4(create_vpc_with_ipv4, expected):
     vpc_id = create_vpc_with_ipv4
 
-    result = exec_test_command(
-        BASE_CMDS["vpcs"] + ["list", "--text", "--format=id", "--no-headers"]
-    )
-    assert vpc_id in result.splitlines()
+    def vpc_ready():
+        vpc_ids = exec_test_command(
+            BASE_CMDS["vpcs"]
+            + ["list", "--text", "--format=id", "--no-headers"]
+        ).splitlines()
+
+        return vpc_id in vpc_ids
+
+    wait_for_condition(3, 30, vpc_ready)
 
     result = json.loads(
         exec_test_command(BASE_CMDS["vpcs"] + ["view", vpc_id, "--json"])
@@ -490,6 +501,10 @@ def test_vpc_update_with_ipv4(create_vpc_with_ipv4, updated):
     assert result["ipv4"][0]["range"] == updated
 
 
+@pytest.mark.skipif(
+    os.environ.get("LINODE_CLI_API_VERSION", None) != "v4beta",
+    reason="At the moment default-ranges-all-list command is available on beta env only",
+)
 def test_vpc_with_forbidden_ipv4_fail():
     forbidden_ipv4 = exec_test_command(
         BASE_CMDS["vpcs"]
