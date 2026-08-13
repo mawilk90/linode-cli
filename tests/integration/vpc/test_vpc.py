@@ -389,14 +389,6 @@ def test_get_vpc_default_ranges():
     assert isinstance(result[headers[1]], list)
 
 
-def list_vpc_ids():
-    vpc_ids = exec_test_command(
-        BASE_CMDS["vpcs"] + ["list", "--text", "--format=id", "--no-headers"]
-    )
-
-    return vpc_ids.splitlines()
-
-
 @pytest.mark.parametrize(
     "create_vpc_with_ipv4, expected",
     [
