@@ -321,6 +321,31 @@ def test_update_ephemeral_to_reserved(get_linode_id):
     assert is_reserved == "True"
 
 
+def test_allocate_reserved_ipv4_address(get_linode_id):
+    linode_id = get_linode_id
+
+    result = exec_test_command(
+        BASE_CMDS["networking"]
+        + [
+            "ip-add",
+            "--type",
+            "ipv4",
+            "--public",
+            "true",
+            "--linode_id",
+            linode_id,
+            "--reserved",
+            "true",
+            "--text",
+            "--no-headers",
+            "--format",
+            "reserved",
+        ]
+    )
+
+    assert result == "True"
+
+
 def test_share_ipv4_address(
     get_linode_ids_shared_ipv4, monkeypatch: MonkeyPatch
 ):
