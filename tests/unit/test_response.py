@@ -47,7 +47,7 @@ class TestResponse:
                     "engines": {
                         "xyz": [{"quantity": 5}],
                     },
-                }
+                },
             ]
         )
         result = sorted(result, key=lambda x: x["id"])
